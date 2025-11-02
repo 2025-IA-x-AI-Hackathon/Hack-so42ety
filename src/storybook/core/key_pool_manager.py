@@ -168,9 +168,10 @@ class KlingKeyPoolManager(AbstractKeyPoolManager):
 
     def is_rate_limit_error(self, status_code: int, response_data: dict) -> bool:
         """
-        429 에러 + Kling API 에러 코드 1302/1303/1304 체크
+        429 에러 + Kling API 에러 코드 1102/1302/1303/1304 체크
 
         Kling API 에러 코드:
+        - 1102: 계정 잔액 부족 (Account balance not enough)
         - 1302: API 요청 속도 초과 (Rate Limit)
         - 1303: 동시성/QPS 초과 (Concurrency Limit)
         - 1304: IP 화이트리스트 정책 위반
@@ -186,8 +187,8 @@ class KlingKeyPoolManager(AbstractKeyPoolManager):
             return False
 
         error_code = response_data.get("code")
-        # Kling API Rate Limit 에러 코드
-        return error_code in [1302, 1303, 1304]
+        # Kling API Rate Limit 에러 코드 (1102: 잔액 부족도 다른 키로 재시도)
+        return error_code in [1102, 1302, 1303, 1304]
 
     def get_all_key_pairs(self) -> List[Tuple[str, str]]:
         """
